@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-
 export const fetchTodos = createAsyncThunk(
   "todos/fetchTodos", async (_, thunkApi) => {
     try {
@@ -10,10 +9,10 @@ export const fetchTodos = createAsyncThunk(
           _limit: 10,
           _page: 1
         }
-      });
+      })
       return res.data;
     } catch (err) {
-      return thunkApi.rejectWithValue("Fetch error todos");
+      return thunkApi.rejectWithValue("fetchTodos error");
     }
   }
 );
@@ -21,10 +20,10 @@ export const fetchTodos = createAsyncThunk(
 export const fetchTodoById = createAsyncThunk(
   "todos/fetchTodoById", async (id, thunkApi) => {
     try {
-      const res = await axios.get(`https://jsonplaceholder.typicode.com/todos/${id}`);
+      const res = await axios.get("https://jsonplaceholder.typicode.com/todos/" + id);
       return res.data;
     } catch (err) {
-      return thunkApi.rejectWithValue("Fetch error todo by id");
+      return thunkApi.rejectWithValue("fetchTodoById error");
     }
   }
 );
@@ -32,27 +31,16 @@ export const fetchTodoById = createAsyncThunk(
 const todosSlice = createSlice({
   name: "todos",
   initialState: {
-    allTodos: [],
     todos: [],
+    allTodos: [],
     selectedTodo: null,
     loading: false,
     error: null
   },
   reducers: {
     setTodos: (state, action) => {
-      state.allTodos = action.payload;
       state.todos = action.payload;
-    },
-    deleteTodo: (state, action) => {
-      state.todos = state.todos.filter(todo => todo.id !== action.payload);
-      console.log(action.payload)
-    },
-    completeTodo: (state, action) => {
-      state.todos = state.todos.map(todo => {
-        if (todo.id == action.payload) 
-          todo.completed = !todo.completed;
-        return todo;
-      });
+      state.allTodos = action.payload;
     },
     searchTodo: (state, action) => {
       const query = action.payload.trim();
@@ -63,6 +51,21 @@ const todosSlice = createSlice({
       } else {
         state.todos = state.allTodos.filter(todo => todo.title.match(regex));
       }
+    },
+    completeTodo: (state, action) => {
+      const id = action.payload;
+      
+      state.todos = state.allTodos = state.allTodos.map(todo => {
+        if (todo.id == id) 
+          todo.completed = !todo.completed;
+
+        return todo; 
+      });
+    },
+    deleteTodo: (state, action) => {
+      const id = action.payload;
+      
+      state.todos = state.allTodos = state.allTodos.filter(todo => todo.id !== id);
     }
   },
   extraReducers: builder => {
@@ -70,12 +73,11 @@ const todosSlice = createSlice({
       state.loading = true;
       state.error = null;
     }).addCase(fetchTodos.fulfilled, (state, action) => {
-      state.todos = action.payload;
-      state.allTodos = action.payload;
       state.loading = false;
+      state.allTodos = state.todos = action.payload;
     }).addCase(fetchTodos.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload || "Fetch todos error (ACTION)";
+      state.error = action.payload || "fetchTodos error(ACTION)";
     })
 
     .addCase(fetchTodoById.pending, state => {
@@ -86,10 +88,10 @@ const todosSlice = createSlice({
       state.selectedTodo = action.payload;
     }).addCase(fetchTodoById.rejected, (state, action) => {
       state.loading = false;
-      state.error = action.payload || "Error fetch todo by id (ACTON)";
+      state.error = action.payload || "fetchTodoById error(ACTION)";
     })
   }
 });
 
+export const { setTodos, searchTodo, completeTodo, deleteTodo } = todosSlice.actions;
 export default todosSlice.reducer;
-export const { setTodos, deleteTodo, completeTodo, searchTodo } = todosSlice.actions;

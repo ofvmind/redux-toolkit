@@ -1,7 +1,7 @@
 .ring {
   width: 90px;
   height: 90px;
-  border: 7px solid blue;
+  border: 7px dotted yellow;
   border-radius: 50%;
   animation: rotate 1s infinite linear;
 }
